@@ -1,0 +1,39 @@
+# Keil / uVision generated files
+*.bak
+*.lst
+*.obj
+*.m51
+*.lnp
+*.plg
+*.map
+*.hex
+*.uvgui*
+*.uvopt
+output/*
+list/*
+source/main.c
+
+# Python generated files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local logs and test data
+*.log
+*.safevault
+SafeKey-unlocked-*/
+test-data/
+debug.log
+*.zip
+project/
+
+# Keep the checked-in release firmware
+!release/
+!release/*.hex
+
+# Local editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
