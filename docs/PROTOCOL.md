@@ -10,6 +10,7 @@
 | Device -> host | `SKRDY\\0\\0\\0` | 设备准备好 |
 | Device -> host | `SKKY pos digit flag 0` | 按键输入事件 |
 | Device -> host | `SKCL\\0\\0\\0\\0` | 清空输入 |
+| Device -> host | `SKBK pos 0 0 0` | 回退到上一位 |
 | Device -> host | `SKOK\\0\\0\\0\\0` | PIN 正确 |
 | Device -> host | `SKER count 0 0 0` | PIN 错误 |
 | Device -> host | `SKLK 30 0 0 0` | 暂时锁定 |

@@ -47,7 +47,7 @@ void show_wait(void)
     if(pin_pos>3) d3=pin_buf[3];
     if(pin_pos>4) d4=pin_buf[4];
     if(pin_pos>5) d5=pin_buf[5];
-    /* 当前正在编辑的位置直接显示当前数字，方便调试。 */
+    /* 当前正在编辑的数字实时显示在当前位置，主机端仍不会记录它。 */
     if(pin_pos==0) d0=current_digit;
     else if(pin_pos==1) d1=current_digit;
     else if(pin_pos==2) d2=current_digit;
@@ -107,8 +107,8 @@ void mykey(void)
     online=1;
     if(GetKeyAct(enumKey1)==enumKeyPress) {
         current_digit++; if(current_digit>9) current_digit=0;
-        Seg7Print(12,12,12,12,12,12,pin_pos,current_digit);
-        send_frame('S','K','K','Y',pin_pos,current_digit,0,0);
+        Seg7Print(12,12,12,12,12,12,pin_pos,10);
+        send_frame('S','K','K','Y',pin_pos,0,0,0);
         SetBeep(1200,30);
     }
     if(GetKeyAct(enumKey2)==enumKeyPress) {
@@ -121,7 +121,15 @@ void mykey(void)
         } else show_wait();
     }
     if(GetKeyAct(enumKey3)==enumKeyPress) {
-        clear_pin(); SetBeep(800,50); send_frame('S','K','C','L',0,0,0,0);
+        /* K3 回退到上一位；在第 0 位时只把当前数字归零。 */
+        if(pin_pos>0) {
+            pin_pos--;
+            current_digit=pin_buf[pin_pos];
+            pin_buf[pin_pos]=0;
+        } else {
+            current_digit=0;
+        }
+        show_wait(); SetBeep(800,50); send_frame('S','K','B','K',pin_pos,0,0,0);
     }
 }
 
