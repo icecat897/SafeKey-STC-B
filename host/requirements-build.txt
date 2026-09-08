@@ -1,0 +1,4 @@
+pyinstaller==6.18.0
+pyserial==3.5
+cryptography==45.0.7
+PyQt6==6.8.1

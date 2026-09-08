@@ -2,7 +2,7 @@
 
 更新时间：2026-09-08
 
-当前版本：V3.0.0。V3 在保持串口协议兼容的前提下，增加了 PIN 脱敏显示、安全 ZIP 解压、D 盘可配置解锁目录、保险箱修改后重新加密保存、自动锁定、完整性检查、状态面板和 Windows EXE 打包脚本。K3 已改为回退上一位，K1 调整的数字会实时显示在板上。
+当前版本：V3.0.1。V3 在保持串口协议兼容的前提下，增加了 PIN 脱敏显示、安全 ZIP 解压、D 盘可配置解锁目录、保险箱修改后重新加密保存、自动锁定、完整性检查、状态面板和 Windows EXE。V3.0.1 将正式界面迁移到 PyQt6，并使用隔离的 Python 3.11 环境打包，修复了 `_rust` / `QtCore` DLL 加载失败。K3 已改为回退上一位，K1 调整的数字会实时显示在板上。
 
 本文档用于让后续 AI 或开发者快速理解课程背景、硬件平台、已有资料、SafeKey V1 的实现状态、验证方法和后续开发边界。本文档中的项目事实以当前目录中的源码、Keil 工程和用户实际验证结果为准；课程总结文件可能存在转述误差，遇到冲突应优先核对原始工程和芯片资料。
 
@@ -51,13 +51,15 @@ SafeKey V1 使用老师标准版 STCBSP_V3.6，而不是迷你版 `STCB.h`，原
 - `source\safekey_main.c`：单片机固件。
 - `source\STCBSP_V3.6.LIB`：标准 BSP 库。
 - `inc\`：工程依赖的课程 BSP 头文件。
-- `host\safe_key.py`：Windows Tkinter 主机端程序和保险箱实现。
+- `host\safe_key.py`：保险箱、加密和串口核心逻辑（保留旧 Tk 入口兼容源码运行）。
+- `host\safe_key_qt.py`：V3 正式 PyQt6 图形界面入口。
+- `host\requirements-build.txt`：固定的 EXE 构建依赖。
 - `host\requirements.txt`：主机端依赖 `pyserial` 和 `cryptography`。
 - `docs\PROTOCOL.md`：V1 串口协议。
 - `release\SafeKey_V1.hex`：已编译的 V1 固件发布文件。
 - `README.md`：GitHub 项目说明。
 - `LICENSE`：MIT License。
-- `VERSION`：当前版本 `1.0.0`。
+- `VERSION`：当前版本 `3.0.1`。
 - `.gitignore`：忽略 Keil 产物、Python 缓存、保险箱和临时明文。
 
 `output` 和 `list` 是本地编译产物目录，不应提交。根目录可能存在旧备份文件和调试日志，也不应提交。
@@ -74,7 +76,7 @@ SafeKey V1 使用老师标准版 STCBSP_V3.6，而不是迷你版 `STCB.h`，原
 
 - K1：当前数字加 1，0 到 9 循环。
 - K2：确认当前数字并进入下一位。
-- K3：清空当前输入。
+- K3：回退上一位；位于第 0 位时将当前数字归零。
 
 输入 PIN 时，数码管显示已输入数字、当前编辑数字和位置，方便调试。输入正确后，LED 全亮、蜂鸣器提示并发送 `SKOK`。输入错误后发送 `SKER`，失败 3 次后锁定 30 秒并发送 `SKLK`。
 

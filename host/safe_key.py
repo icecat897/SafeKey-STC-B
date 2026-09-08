@@ -20,8 +20,12 @@ import time
 import zipfile
 import webbrowser
 from pathlib import Path
-from tkinter import Tk, StringVar, filedialog, messagebox, ttk
-from tkinter.scrolledtext import ScrolledText
+try:
+    from tkinter import Tk, StringVar, filedialog, messagebox, ttk
+    from tkinter.scrolledtext import ScrolledText
+except ImportError:
+    # Qt 正式版只复用本文件中的加密与串口核心；打包时无需 Tcl/Tk。
+    Tk = StringVar = filedialog = messagebox = ttk = ScrolledText = None
 
 try:
     import serial
@@ -186,7 +190,7 @@ class Device:
 class SafeKeyApp:
     def __init__(self, root: Tk):
         self.root = root
-        root.title("SafeKey V2 本地文件保险箱")
+        root.title("SafeKey V3 本地文件保险箱")
         root.geometry("920x720")
         self.device: Device | None = None
         self.unlocked_dir: Path | None = None

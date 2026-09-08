@@ -1,8 +1,8 @@
-# SafeKey V2
+# SafeKey V3
 
 SafeKey 是一个基于 STC-B 学习板的本地文件保险箱课程项目。单片机通过 K1/K2/K3 输入 PIN，经 CH340 串口向 Windows 主机报告认证结果，主机再解密指定的本地文件保险箱。
 
-> V1 是可运行的课程原型，不是专业 USB 安全令牌。当前版本使用固定的演示设备密钥，V2 计划升级为挑战-响应认证。
+> V3 是面向课程验收的完整桌面版本，不是专业 USB 安全令牌。当前版本仍使用固定的演示设备密钥，后续可升级为挑战-响应认证。
 
 ## Features
 
@@ -10,7 +10,7 @@ SafeKey 是一个基于 STC-B 学习板的本地文件保险箱课程项目。�
 - 数码管显示当前输入数字和位置
 - LED、蜂鸣器显示认证状态
 - CH340 USB 转串口通信
-- Windows Tkinter 主机程序
+- Windows PyQt6 图形主机程序
 - AES-256-GCM 文件夹加密
 - 失败 3 次后暂时锁定 30 秒
 - 单片机断开或心跳超时后自动删除临时明文目录
@@ -30,8 +30,10 @@ SafeKey 是一个基于 STC-B 学习板的本地文件保险箱课程项目。�
 - `STC_Demo.uvproj`：Keil C51 工程
 - `source/STCBSP_V3.6.LIB`：课程标准 BSP 库
 - `inc/`：课程 BSP 头文件
-- `host/safe_key.py`：Windows 主机端 GUI 和保险箱程序
+- `host/safe_key.py`：保险箱、加密和串口核心逻辑
+- `host/safe_key_qt.py`：V3 Windows 图形界面入口
 - `host/requirements.txt`：主机端依赖
+- `host/requirements-build.txt`：EXE 构建依赖
 - `release/SafeKey_V1.hex`：已编译的 V1 固件
 - `docs/PROTOCOL.md`：串口协议说明
 
@@ -56,8 +58,8 @@ SafeKey 是一个基于 STC-B 学习板的本地文件保险箱课程项目。�
 在 `host` 目录执行：
 
 ```text
-python -m pip install -r requirements.txt
-python safe_key.py
+python -m pip install -r requirements-build.txt
+python safe_key_qt.py
 ```
 
 运行主机端测试：
@@ -66,9 +68,18 @@ python safe_key.py
 python -m unittest test_safe_key.py
 ```
 
-生成 Windows EXE：在项目根目录 PowerShell 执行 `powershell -ExecutionPolicy Bypass -File .\build_exe.ps1`，生成 `dist\SafeKey_V3.exe`。首次运行仍需将学习板连接到电脑，并选择正确 COM 口。
+生成 Windows EXE 时建议使用独立的 Conda 环境，避免系统 Python、Tcl/Tk 或其他软件的 DLL 污染打包结果：
 
-解锁后可以点击“打开临时目录”修改文件，完成后点击“保存修改并锁定”。默认解锁目录为 D 盘的 `SafeKey-Unlocked`，不再使用系统临时目录；保险箱格式升级为 `SAFEKEY2`，仍兼容读取 V1 文件。
+```text
+conda create -n safekey-build python=3.11 pip -y
+conda activate safekey-build
+python -m pip install -r host\requirements-build.txt
+powershell -ExecutionPolicy Bypass -File .\build_exe.ps1
+```
+
+成品生成在 `dist\SafeKey_V3.exe`。仓库已提供可直接运行的 `release\SafeKey_V3.exe`，用户电脑无需安装 Python。首次运行仍需连接学习板并选择正确 COM 口。
+
+解锁后可以点击“打开解锁目录”修改文件，完成后点击“保存修改并锁定”。默认解锁目录为 D 盘的 `SafeKey-Unlocked`，不再使用系统临时目录；保险箱格式升级为 `SAFEKEY2`，仍兼容读取 V1 文件。
 
 创建保险箱成功后，程序会询问是否删除原文件夹。选择“是”才会删除，选择“否”则保留原文件夹。建议首次验证时选择“否”，确认保险箱能够成功解锁后再删除明文副本。
 
@@ -90,9 +101,9 @@ python safe_key.py --create D:\\资料 D:\\SafeKey\\资料.safevault
 
 ## Security boundary
 
-V2 适合课程验收和本地实验，不适合保护高价值或唯一备份数据。当前设备密钥仍由主机程序管理，固定 `SKOK` 仍然存在重放风险；V2 的重点是可用性、文件安全处理和可验证的异常行为。
+V3 适合课程验收和本地实验，不适合保护高价值或唯一备份数据。当前设备密钥仍由主机程序管理，固定 `SKOK` 仍然存在重放风险；V3 的重点是可用性、文件安全处理和可验证的异常行为。
 
-## V2 roadmap
+## Roadmap
 
 - 基于随机挑战值的 HMAC-SHA256 挑战-响应认证
 - 让 PIN 参与文件密钥派生
