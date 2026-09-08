@@ -46,6 +46,15 @@ PBKDF2_ROUNDS = 200_000
 HEARTBEAT_TIMEOUT = 3.0
 
 
+def default_output_root():
+    """优先使用 D 盘；没有 D 盘时回退到当前用户的 Documents。"""
+    drive_d = Path("D:/")
+    if drive_d.exists():
+        return drive_d / "SafeKey-Unlocked"
+    documents = Path.home() / "Documents"
+    return documents / "SafeKey-Unlocked"
+
+
 def derive_key(salt: bytes) -> bytes:
     return hashlib.pbkdf2_hmac("sha256", DEVICE_SECRET, salt, PBKDF2_ROUNDS, 32)
 
@@ -210,7 +219,7 @@ class SafeKeyApp:
         self.temp_var = StringVar(value="")
         self.input_var = StringVar(value="尚未收到单片机输入")
         self.autolock_var = StringVar(value="300")
-        self.output_root_var = StringVar(value="D:\\SafeKey-Unlocked")
+        self.output_root_var = StringVar(value=str(default_output_root()))
         self.log = None
         self.build_ui()
         self.root.protocol("WM_DELETE_WINDOW", self.close_app)

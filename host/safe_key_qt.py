@@ -32,6 +32,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from safe_key import (
     SERIAL_IMPORT_ERROR,
     Device,
+    default_output_root,
     make_vault,
     relock_vault,
     serial as serial_module,
@@ -127,7 +128,7 @@ class SafeKeyWindow(QMainWindow):
         vault_box = QGroupBox("保险箱")
         vault_layout = QGridLayout(vault_box)
         self.vault_edit = QLineEdit()
-        self.output_edit = QLineEdit("D:\\SafeKey-Unlocked")
+        self.output_edit = QLineEdit(str(default_output_root()))
         self.autolock_spin = QSpinBox()
         self.autolock_spin.setRange(10, 86400)
         self.autolock_spin.setValue(300)
