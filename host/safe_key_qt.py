@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import shutil
+import os
 import sys
 import time
 from pathlib import Path
@@ -27,7 +28,16 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from safe_key import Device, make_vault, relock_vault, unlock_vault, verify_vault
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from safe_key import (
+    SERIAL_IMPORT_ERROR,
+    Device,
+    make_vault,
+    relock_vault,
+    serial as serial_module,
+    unlock_vault,
+    verify_vault,
+)
 
 try:
     from serial.tools import list_ports
@@ -397,7 +407,26 @@ class SafeKeyWindow(QMainWindow):
         event.accept()
 
 
+def runtime_self_test():
+    """验证 EXE 内的 Qt、pyserial/ctypes 和 cryptography 运行库。"""
+    if serial_module is None or list_ports is None:
+        return 2
+    try:
+        list(list_ports.comports())
+        key = os.urandom(32)
+        nonce = os.urandom(12)
+        plaintext = b"SafeKey runtime self-test"
+        encrypted = AESGCM(key).encrypt(nonce, plaintext, b"SafeKey-V3")
+        if AESGCM(key).decrypt(nonce, encrypted, b"SafeKey-V3") != plaintext:
+            return 4
+    except Exception:
+        return 3
+    return 0
+
+
 def main():
+    if "--self-test" in sys.argv:
+        raise SystemExit(runtime_self_test())
     app = QApplication(sys.argv)
     app.setStyleSheet(STYLE)
     window = SafeKeyWindow()

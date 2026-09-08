@@ -6,8 +6,15 @@ if (-not (Test-Path -LiteralPath $python)) {
   Write-Error 'Missing isolated build environment: safekey-build. See README.'
   exit 1
 }
+$buildEnvironment = Split-Path -Parent $python
+$ffiRuntime = Join-Path $buildEnvironment 'Library\bin\ffi.dll'
+if (-not (Test-Path -LiteralPath $ffiRuntime)) {
+  Write-Error 'Missing Conda runtime dependency: Library\bin\ffi.dll'
+  exit 1
+}
 
 & $python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --exclude-module tkinter `
+  --add-binary "$ffiRuntime;." `
   --name SafeKey_V3 `
   --distpath "$projectRoot\dist" `
   --workpath "$projectRoot\build" `

@@ -27,12 +27,14 @@ except ImportError:
     # Qt 正式版只复用本文件中的加密与串口核心；打包时无需 Tcl/Tk。
     Tk = StringVar = filedialog = messagebox = ttk = ScrolledText = None
 
+SERIAL_IMPORT_ERROR = None
 try:
     import serial
     from serial.tools import list_ports
-except ImportError:
+except ImportError as exc:
     serial = None
     list_ports = None
+    SERIAL_IMPORT_ERROR = exc
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
@@ -146,7 +148,8 @@ def safe_extract(zf: zipfile.ZipFile, destination: Path) -> None:
 class Device:
     def __init__(self, port_name: str):
         if serial is None:
-            raise RuntimeError("缺少 pyserial，请先运行: python -m pip install pyserial")
+            detail = "：%s" % SERIAL_IMPORT_ERROR if SERIAL_IMPORT_ERROR else ""
+            raise RuntimeError("串口组件加载失败%s" % detail)
         # 课程现有串口 1 工程使用 2400bps，必须与单片机保持一致。
         self.port = serial.Serial(port_name, 2400, timeout=0.1)
         self.buffer = bytearray()
